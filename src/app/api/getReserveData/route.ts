@@ -4,7 +4,6 @@ import prisma from "@/lib/prisma"
 
 const crypto = require("crypto")
 
-
 const hash32key = String(process.env.NEXT_PUBLIC_hash32);
 const hashIV = String(process.env.NEXT_PUBLIC_hashIV);
 
@@ -27,25 +26,27 @@ const createHash = async (original: string): Promise<string> => {
 
 export async function POST(req:NextRequest){
     const res = await req.json()
-    console.log("API log",res.name)
-    const hashName = await createHash(String(res.name))
-    console.log("API HASH LOG:",hashName)
-    const result = await prisma.reservation.findMany({
-        where:{
-            name:hashName
-        }
-    })
-    const name = result[0].name
+    
     let isAlreadyBuy = false
     let allAmount = 0
-    let reservegoods = []
-    for(let i = 0;i < result.length;i++){
-        for(let j = 0;j < result[i].reservegoods.length;j++){
-            reservegoods.push(result[i].reservegoods[j])
+    let reservegoods:string[] = []
+    let name = res.name
+    console.log("API log",res.name)
+    await createHash(String(res.name)).then(async (hashName) => {
+        console.log("API HASH LOG:",hashName)
+        const result = await prisma.reservation.findMany({
+            where:{
+                name:"plr34DsdFbbe9aPGxQajqABU9qAxDkb2ScYCP3qBkQ=="
+            }
+        })
+        for(let i = 0;i < result.length;i++){
+            for(let j = 0;j < result[i].reservegoods.length;j++){
+                reservegoods.push(result[i].reservegoods[j])
+            }
+            allAmount += result[i].allamount
+            isAlreadyBuy = isAlreadyBuy || result[i].isAlreadyBuy
         }
-        allAmount += result[i].allamount
-        isAlreadyBuy = isAlreadyBuy || result[i].isAlreadyBuy
-    }
+    })
     return NextResponse.json({
         name:name,reservegoods:reservegoods,allamount:allAmount,isAlreadyBuy:isAlreadyBuy
     })
