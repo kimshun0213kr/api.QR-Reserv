@@ -9,6 +9,9 @@ export async function GET(){
             }
         },orderBy:[{reserveLimit:"asc"},{amount:"asc"},{id:"asc"}]
     })
-    console.log(result)
-    return NextResponse.json(result)
+    let returnData = []
+    for(let i = 0;i<result.length;i++){
+        returnData.push([result[i].id,result[i].name,result[i].amount,result[i].maxPiece])
+    }
+    return NextResponse.json(returnData)
 }
